@@ -72,8 +72,6 @@ export async function extractTextFromDOCX(file: File): Promise<string> {
   } catch (err) {
     if (err instanceof EmptyTextError) throw err;
     if (err instanceof TextExtractionError) throw err;
-    // mammoth already threw - wrap as TextExtractionError
-    // but preserve EmptyTextError from assertMinLength above (already handled)
     throw new TextExtractionError(
       `Failed to extract text from DOCX: ${(err as Error).message}`,
       { cause: err },
