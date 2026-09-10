@@ -261,15 +261,15 @@ describe("analyzeResume", () => {
     });
   });
 
-  it("should use default model gemini-2.0-flash when not specified", async () => {
+it("should use default model gemini-3.6-flash when not specified", async () => {
     const jsonStr = JSON.stringify(VALID_ANALYSIS);
     const fetchMock = vi.fn(async () => mockGenerateContentResponse(jsonStr));
     vi.stubGlobal("fetch", fetchMock);
 
-    await analyzeResume(VALID_RESUME_TEXT, { apiKey: "k" });
+    await analyzeResume(VALID_RESUME_TEXT, { apiKey: "test-key" });
     const [url] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toContain(DEFAULT_MODEL);
-    expect(url).toContain("gemini-2.0-flash");
+    expect(url).toContain("gemini-3.6-flash");
   });
 
   it("should strip ```json fences", async () => {
@@ -631,8 +631,8 @@ describe("analyzeResume", () => {
 });
 
 describe("DEFAULT_MODEL", () => {
-  it("should be gemini-2.0-flash", async () => {
-    expect(DEFAULT_MODEL).toBe("gemini-2.0-flash");
+  it("should be gemini-3.6-flash", async () => {
+    expect(DEFAULT_MODEL).toBe("gemini-3.6-flash");
   });
 
   it("should use DEFAULT_MODEL when model not specified in analyzeResume", async () => {
@@ -654,7 +654,7 @@ describe("DEFAULT_MODEL", () => {
       await analyzeResume("Some resume text for testing model default behaviour", { apiKey: "test-key-model" });
       const [url] = (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as unknown as [string, RequestInit];
       expect(url).toContain(DEFAULT_MODEL);
-      expect(url).toContain("gemini-2.0-flash");
+      expect(url).toContain("gemini-3.6-flash");
     } finally {
       if (prev === undefined) delete process.env.GEMINI_API_KEY;
       else process.env.GEMINI_API_KEY = prev;

@@ -26,7 +26,6 @@ export class GeminiParseError extends Error {
 }
 
 export const MAX_PROMPT_CHARS = 15000;
-/** Default Gemini model — standardized on gemini-2.0-flash (real model). */
 export const DEFAULT_MODEL = "gemini-3.6-flash";
 const DEFAULT_TIMEOUT_MS = 30000;
 const RETRY_DELAYS_MS = [500, 1000] as const;
