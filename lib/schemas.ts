@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 
 export const ALLOWED_MIME_TYPES = [
   "application/pdf",
@@ -54,7 +54,7 @@ export const FileMetadataSchema = z
     if (data.fileSize > MAX_FILE_SIZE) {
       ctx.addIssue({
         code: "custom",
-        message: `File size must be ≤ ${MAX_FILE_SIZE} bytes (10MB)`,
+        message: `File size must be ≤ ${MAX_FILE_SIZE} bytes (5MB)`,
         path: ["fileSize"],
       });
     }
@@ -111,7 +111,7 @@ export const FileValidationSchema = z
     if (file.size > MAX_FILE_SIZE) {
       ctx.addIssue({
         code: "custom",
-        message: `File size must be ≤ ${MAX_FILE_SIZE} bytes (10MB)`,
+        message: `File size must be ≤ ${MAX_FILE_SIZE} bytes (5MB)`,
         path: [],
       });
     }

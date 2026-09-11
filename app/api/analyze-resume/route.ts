@@ -15,7 +15,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-// Note: FileValidationSchema enforces 10MB limit (MAX_FILE_SIZE).
+// Note: FileValidationSchema enforces 5MB limit (MAX_FILE_SIZE).
 // Vercel's default body parser limit is 4.5MB — for files >4.5MB, configure
 // `vercel.json` `functions.bodySize` or use streaming upload in production.
 
@@ -41,7 +41,7 @@ function validationErrorMessage(issues: readonly { message: string }[]): string 
 /**
  * POST /api/analyze-resume
  *
- * Accepts multipart/form-data with a single `file` field (.pdf, .docx, .txt, ≤10MB).
+  * Accepts multipart/form-data with a single `file` field (.pdf, .docx, .txt, ≤5MB).
  * Extracts text from the resume file and runs AI analysis to return structured
  * insights (summary, jobTitles, improvements).
  *

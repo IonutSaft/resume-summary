@@ -59,7 +59,7 @@ export function validateResumeFile(file: File): string | null {
   const ext = getExtension(file.name);
 
   if (file.size > MAX_FILE_SIZE) {
-    return "File must be ≤ 10MB";
+    return "File must be ≤ 5MB";
   }
 
   if (!ext || !(ALLOWED_EXTENSIONS as readonly string[]).includes(ext)) {
@@ -395,7 +395,7 @@ export default function ResumeUpload({
                   ·
                 </span>
                 <span className="whitespace-nowrap text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  PDF · DOCX · TXT · 10MB max
+                  PDF · DOCX · TXT · 5MB max
                 </span>
               </span>
             )}

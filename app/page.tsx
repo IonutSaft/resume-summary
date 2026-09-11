@@ -48,10 +48,10 @@ function friendlyErrorMessage(error: Error): { title: string; hint: string } {
           : "You've made too many requests. Please wait a minute and retry.",
     };
   }
-  if (/10 ?MB|file size|too large/i.test(raw)) {
+  if (/\d+\s?MB|file size|too large/i.test(raw)) {
     return {
       title: raw,
-      hint: "Try a smaller file under 10MB, or export your resume as TXT.",
+      hint: "Try a smaller file under 5MB, or export your resume as TXT.",
     };
   }
   if (/allowed|invalid.*(extension|mime|type)|pdf|docx|txt/i.test(raw)) {
@@ -111,7 +111,7 @@ const STEPS = [
   {
     icon: CloudUpload,
     title: "Upload",
-    text: "Drop a PDF, DOCX, or TXT — up to 10MB. Files stay in your browser until analysis.",
+    text: "Drop a PDF, DOCX, or TXT — up to 5MB. Files stay in your browser until analysis.",
   },
   {
     icon: FileSearch,
@@ -438,7 +438,7 @@ export default function Home() {
             ResumeLens · AI feedback for job seekers. Files are only sent for
             analysis — nothing is stored.
           </p>
-          <p className="shrink-0 tabular-nums">PDF · DOCX · TXT · 10MB max</p>
+          <p className="shrink-0 tabular-nums">PDF · DOCX · TXT · 5MB max</p>
         </div>
       </footer>
     </div>

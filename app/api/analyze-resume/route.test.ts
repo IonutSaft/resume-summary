@@ -196,14 +196,14 @@ describe("POST /api/analyze-resume", () => {
     expect(body.error).toMatch(/Invalid file/i);
   });
 
-  it("should return 400 when file size exceeds 10MB", async () => {
+  it("should return 400 when file size exceeds 5MB", async () => {
     const file = makeFile("a", "resume.pdf", "application/pdf");
     Object.defineProperty(file, "size", { value: MAX_FILE_SIZE + 1 });
     const res = await POST(await makeRequest(file));
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toMatch(/Invalid file/i);
-    expect(body.error).toMatch(/10MB|File size/i);
+    expect(body.error).toMatch(/5MB|File size/i);
     expect(mockedExtractText).not.toHaveBeenCalled();
   });
 

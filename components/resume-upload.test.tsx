@@ -37,7 +37,7 @@ describe("formatFileSize", () => {
   it("formats bytes, KB, and MB", () => {
     expect(formatFileSize(512)).toBe("512 B");
     expect(formatFileSize(1024)).toBe("1.0 KB");
-    expect(formatFileSize(10 * 1024 * 1024)).toBe("10.0 MB");
+    expect(formatFileSize(5 * 1024 * 1024)).toBe("5.0 MB");
   });
 });
 
@@ -46,9 +46,9 @@ describe("validateResumeFile", () => {
     expect(validateResumeFile(pdfFile())).toBeNull();
   });
 
-  it("rejects files over 10MB", () => {
-    const big = pdfFile("big.pdf", 10 * 1024 * 1024 + 1);
-    expect(validateResumeFile(big)).toBe("File must be ≤ 10MB");
+  it("rejects files over 5MB", () => {
+    const big = pdfFile("big.pdf", 5 * 1024 * 1024 + 1);
+    expect(validateResumeFile(big)).toBe("File must be ≤ 5MB");
   });
 
   it("rejects invalid extensions", () => {

@@ -30,7 +30,7 @@ function makeValidResponse(overrides: Record<string, unknown> = {}) {
   };
 }
 
-const TEN_MB = 10 * 1024 * 1024;
+const FIVE_MB = 5 * 1024 * 1024;
 
 // ---------------------------------------------------------------------------
 // ResumeAnalysisResponseSchema
@@ -279,19 +279,19 @@ describe("FileMetadataSchema / ResumeAnalysisRequestSchema (plain object)", () =
     expect(result.success).toBe(true);
   });
 
-  it("should pass for file size exactly 10MB", () => {
+  it("should pass for file size exactly 5MB", () => {
     const result = PlainSchema.safeParse({
       fileName: "resume.pdf",
-      fileSize: TEN_MB,
+      fileSize: FIVE_MB,
       mimeType: "application/pdf",
     });
     expect(result.success).toBe(true);
   });
 
-  it("should fail when file size exceeds 10MB", () => {
+  it("should fail when file size exceeds 5MB", () => {
     const result = PlainSchema.safeParse({
       fileName: "resume.pdf",
-      fileSize: TEN_MB + 1,
+      fileSize: FIVE_MB + 1,
       mimeType: "application/pdf",
     });
     expect(result.success).toBe(false);
@@ -425,10 +425,10 @@ describe("FileValidationSchema (File object)", () => {
     expect(result.success).toBe(true);
   });
 
-  it("should fail when File exceeds 10MB", () => {
+  it("should fail when File exceeds 5MB", () => {
     // jsdom File size is based on content; we mock by defining size via Object.defineProperty
     const file = new File(["a"], "resume.pdf", { type: "application/pdf" });
-    Object.defineProperty(file, "size", { value: TEN_MB + 1 });
+    Object.defineProperty(file, "size", { value: FIVE_MB + 1 });
     const result = FileValidationSchema.safeParse(file);
     expect(result.success).toBe(false);
   });
