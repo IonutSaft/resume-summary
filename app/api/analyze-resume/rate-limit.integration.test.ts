@@ -38,6 +38,19 @@ vi.mock("@/lib/gemini", async () => {
 import { POST } from "./route";
 
 function makeFile(content = "valid content here with sufficient length", name = "resume.pdf", type = "application/pdf"): File {
+  const lowerName = name.toLowerCase();
+  if (lowerName.endsWith(".pdf")) {
+    const text = content.startsWith("%PDF-") ? content : `%PDF-1.4\n${content}`;
+    return new File([text], name, { type });
+  }
+  if (lowerName.endsWith(".docx")) {
+    const encoded = new TextEncoder().encode(content);
+    const magic = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+    const combined = new Uint8Array(magic.length + encoded.length);
+    combined.set(magic, 0);
+    combined.set(encoded, magic.length);
+    return new File([combined], name, { type });
+  }
   return new File([content], name, { type });
 }
 

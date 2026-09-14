@@ -59,10 +59,23 @@ const VALID_ANALYSIS_RESPONSE = {
 // Helpers
 // ---------------------------------------------------------------------------
 function makeFile(
-  content = VALID_RESUME_TEXT,
+  content: string = VALID_RESUME_TEXT,
   name = "resume.pdf",
   type = "application/pdf",
 ): File {
+  const lowerName = name.toLowerCase();
+  if (lowerName.endsWith(".pdf")) {
+    const text = content.startsWith("%PDF-") ? content : `%PDF-1.4\n${content}`;
+    return new File([text], name, { type });
+  }
+  if (lowerName.endsWith(".docx")) {
+    const encoded = new TextEncoder().encode(content);
+    const magic = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+    const combined = new Uint8Array(magic.length + encoded.length);
+    combined.set(magic, 0);
+    combined.set(encoded, magic.length);
+    return new File([combined], name, { type });
+  }
   return new File([content], name, { type });
 }
 
@@ -301,5 +314,92 @@ describe("POST /api/analyze-resume", () => {
       expect(ResumeAnalysisResponseSchema.safeParse(body).success).toBe(true);
       vi.clearAllMocks();
     }
+  });
+
+  describe("magic-byte validation", () => {
+    it("rejects PDF extension with DOCX bytes (PK 50 4B 03 04)", async () => {
+      const encoded = new TextEncoder().encode(" hello world content for test");
+      const magic = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+      const combined = new Uint8Array(magic.length + encoded.length);
+      combined.set(magic, 0);
+      combined.set(encoded, magic.length);
+      const file = new File([combined], "spoof.pdf", { type: "application/pdf" });
+
+      const res = await POST(await makeRequest(file));
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/Invalid file.*signature|File content does not match/i);
+      expect(mockedExtractText).not.toHaveBeenCalled();
+    });
+
+    it("rejects DOCX extension with PDF bytes (25 50 44 46)", async () => {
+      const encoded = new TextEncoder().encode(" hello world content for test");
+      const magic = new Uint8Array([0x25, 0x50, 0x44, 0x46]);
+      const combined = new Uint8Array(magic.length + encoded.length);
+      combined.set(magic, 0);
+      combined.set(encoded, magic.length);
+      const file = new File([combined], "spoof.docx", {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      });
+
+      const res = await POST(await makeRequest(file));
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/Invalid file.*signature|File content does not match/i);
+      expect(mockedExtractText).not.toHaveBeenCalled();
+    });
+
+    it("rejects plain-text content with .pdf name", async () => {
+      const file = new File(["just plain text no magic"], "spoof.pdf", {
+        type: "application/pdf",
+      });
+
+      const res = await POST(await makeRequest(file));
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/Invalid file.*signature|File content does not match/i);
+      expect(mockedExtractText).not.toHaveBeenCalled();
+    });
+
+    it("rejects truncated file (<4 bytes) with .pdf", async () => {
+      const file = new File([new Uint8Array([0x25, 0x50])], "truncated.pdf", {
+        type: "application/pdf",
+      });
+
+      const res = await POST(await makeRequest(file));
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/Invalid file.*signature|File content does not match/i);
+      expect(mockedExtractText).not.toHaveBeenCalled();
+    });
+
+    it("rejects EXE MZ bytes with .pdf", async () => {
+      const file = new File([new Uint8Array([0x4d, 0x5a, 0x90, 0x00])], "evil.pdf", {
+        type: "application/pdf",
+      });
+
+      const res = await POST(await makeRequest(file));
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.error).toMatch(/Invalid file.*signature|File content does not match/i);
+      expect(mockedExtractText).not.toHaveBeenCalled();
+    });
+
+    it("accepts valid TXT + valid PDF control (sanity)", async () => {
+      const cases: Array<[string, string]> = [
+        ["resume.txt", "text/plain"],
+        ["resume.pdf", "application/pdf"],
+      ];
+      for (const [name, mime] of cases) {
+        mockedExtractText.mockResolvedValue(VALID_RESUME_TEXT);
+        mockedAnalyzeResume.mockResolvedValue(VALID_ANALYSIS_RESPONSE);
+        const file = makeFile(VALID_RESUME_TEXT, name, mime);
+        const res = await POST(await makeRequest(file));
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(ResumeAnalysisResponseSchema.safeParse(body).success).toBe(true);
+        vi.clearAllMocks();
+      }
+    });
   });
 });

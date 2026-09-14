@@ -90,13 +90,12 @@ export async function POST(req: Request): Promise<Response> {
       return errorJson("No file uploaded", 400);
     }
 
-    const validation = FileValidationSchema.safeParse(file);
+    const validation = await FileValidationSchema.safeParseAsync(file);
     if (!validation.success) {
       return errorJson(`Invalid file: ${validationErrorMessage(validation.error.issues)}`, 400);
     }
 
-    // TODO: Add magic-byte / file signature validation for defense-in-depth
-    // (extension/MIME can be spoofed; lib/text-extraction throws on unsupported type)
+    // Magic-byte validation runs inside FileValidationSchema.safeParseAsync (defense-in-depth).
 
     let text: string;
     try {

@@ -405,54 +405,62 @@ describe("FileValidationSchema (File object)", () => {
     expect(typeof FileValidationSchema.safeParse).toBe("function");
   });
 
-  it("should pass for valid PDF File", () => {
-    const file = new File(["content"], "resume.pdf", { type: "application/pdf" });
-    const result = FileValidationSchema.safeParse(file);
+  it("should pass for valid PDF File", async () => {
+    const file = new File(
+      [new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34])],
+      "resume.pdf",
+      { type: "application/pdf" },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(true);
   });
 
-  it("should pass for valid DOCX File", () => {
-    const file = new File(["content"], "resume.docx", {
-      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    });
-    const result = FileValidationSchema.safeParse(file);
+  it("should pass for valid DOCX File", async () => {
+    const file = new File(
+      [new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00])],
+      "resume.docx",
+      {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(true);
   });
 
-  it("should pass for valid TXT File", () => {
+  it("should pass for valid TXT File", async () => {
     const file = new File(["content"], "resume.txt", { type: "text/plain" });
-    const result = FileValidationSchema.safeParse(file);
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(true);
   });
 
-  it("should fail when File exceeds 5MB", () => {
+  it("should fail when File exceeds 5MB", async () => {
     // jsdom File size is based on content; we mock by defining size via Object.defineProperty
     const file = new File(["a"], "resume.pdf", { type: "application/pdf" });
     Object.defineProperty(file, "size", { value: FIVE_MB + 1 });
-    const result = FileValidationSchema.safeParse(file);
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(false);
   });
 
-  it("should fail for .exe File", () => {
+  it("should fail for .exe File", async () => {
     const file = new File(["content"], "malware.exe", { type: "application/octet-stream" });
-    const result = FileValidationSchema.safeParse(file);
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(false);
   });
 
-  it("should fail for .png File", () => {
+  it("should fail for .png File", async () => {
     const file = new File(["content"], "image.png", { type: "image/png" });
-    const result = FileValidationSchema.safeParse(file);
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(false);
   });
 
-  it("should fail when File mime does not match extension", () => {
+  it("should fail when File mime does not match extension", async () => {
     const file = new File(["content"], "resume.pdf", { type: "image/png" });
-    const result = FileValidationSchema.safeParse(file);
+    const result = await FileValidationSchema.safeParseAsync(file);
     expect(result.success).toBe(false);
   });
 
-  it("should fail for non-File input (plain object)", () => {
-    const result = FileValidationSchema.safeParse({
+  it("should fail for non-File input (plain object)", async () => {
+    const result = await FileValidationSchema.safeParseAsync({
       name: "resume.pdf",
       size: 1024,
       type: "application/pdf",
@@ -460,9 +468,106 @@ describe("FileValidationSchema (File object)", () => {
     expect(result.success).toBe(false);
   });
 
-  it("should fail for null/undefined", () => {
-    expect(FileValidationSchema.safeParse(null).success).toBe(false);
-    expect(FileValidationSchema.safeParse(undefined).success).toBe(false);
+  it("should fail for null/undefined", async () => {
+    expect((await FileValidationSchema.safeParseAsync(null)).success).toBe(false);
+    expect((await FileValidationSchema.safeParseAsync(undefined)).success).toBe(false);
+  });
+
+  it("should fail for spoofed PDF (text content with .pdf name)", async () => {
+    const file = new File(["content"], "spoofed.pdf", { type: "application/pdf" });
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+  });
+
+  it("should fail for spoofed DOCX (text content with .docx name)", async () => {
+    const file = new File(["content"], "spoofed.docx", {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("FileValidationSchema magic-byte edge cases", () => {
+  it("rejects DOCX bytes with .pdf extension", async () => {
+    const file = new File(
+      [new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00])],
+      "resume.pdf",
+      { type: "application/pdf" },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => /signature/i.test(issue.message))).toBe(true);
+    }
+  });
+
+  it("rejects PDF bytes with .docx extension", async () => {
+    const file = new File(
+      [new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34])],
+      "resume.docx",
+      {
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => /signature/i.test(issue.message))).toBe(true);
+    }
+  });
+
+  it("rejects truncated PDF [0x25,0x50] with .pdf", async () => {
+    const file = new File(
+      [new Uint8Array([0x25, 0x50])],
+      "resume.pdf",
+      { type: "application/pdf" },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => /signature/i.test(issue.message))).toBe(true);
+    }
+  });
+
+  it("rejects TXT with null byte [0x48,0x69,0x00] with .txt", async () => {
+    const file = new File(
+      [new Uint8Array([0x48, 0x69, 0x00])],
+      "resume.txt",
+      { type: "text/plain" },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => /signature/i.test(issue.message))).toBe(true);
+    }
+  });
+
+  it("rejects TXT with invalid UTF-8 [0xFF,0xFE] with .txt", async () => {
+    const file = new File(
+      [new Uint8Array([0xff, 0xfe])],
+      "resume.txt",
+      { type: "text/plain" },
+    );
+    const result = await FileValidationSchema.safeParseAsync(file);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues.some((issue) => /signature/i.test(issue.message))).toBe(true);
+    }
+  });
+
+  it("accepts valid TXT with unicode/emoji (\"Café 🎉\") with .txt and valid PDF %PDF-1.4 bytes", async () => {
+    const txtFile = new File(["Café 🎉"], "resume.txt", { type: "text/plain" });
+    const txtResult = await FileValidationSchema.safeParseAsync(txtFile);
+    expect(txtResult.success).toBe(true);
+
+    const pdfFile = new File(
+      [new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34])],
+      "resume.pdf",
+      { type: "application/pdf" },
+    );
+    const pdfResult = await FileValidationSchema.safeParseAsync(pdfFile);
+    expect(pdfResult.success).toBe(true);
   });
 });
 

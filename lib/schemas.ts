@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { validateFileSignature } from "@/lib/file-signatures";
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
 
@@ -97,11 +98,15 @@ export type FileMetadata = z.infer<typeof FileMetadataSchema>;
 
 export type ResumeAnalysisRequest = z.infer<typeof ResumeAnalysisRequestSchema>;
 
+/**
+ * Validates an uploaded resume File (extension, MIME type, size, MIME↔extension match).
+ * Runs async magic-byte signature check via `validateFileSignature` (defense-in-depth).
+ */
 export const FileValidationSchema = z
   .custom<File>((val) => val instanceof File, {
     message: "Expected a File object",
   })
-  .superRefine((file, ctx) => {
+  .superRefine(async (file, ctx) => {
     if (!(file instanceof File)) {
       return;
     }
@@ -144,6 +149,17 @@ export const FileValidationSchema = z
         ctx.addIssue({
           code: "custom",
           message: `MIME type "${file.type}" does not match extension "${ext}" (expected "${expected}")`,
+          path: [],
+        });
+      }
+    }
+
+    if (ext && (ALLOWED_EXTENSIONS as string[]).includes(ext)) {
+      const ok = await validateFileSignature(file, ext);
+      if (!ok) {
+        ctx.addIssue({
+          code: "custom",
+          message: "File content does not match extension (invalid file signature)",
           path: [],
         });
       }
