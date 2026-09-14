@@ -156,6 +156,7 @@ export default function Home() {
   const handleUploadStart = React.useCallback(() => {
     phaseRef.current = "uploading";
     setPhase("uploading");
+    toast.dismiss("resume-rate-limit");
     toast.loading("Analyzing your resume…", {
       id: "resume-analysis",
       description: "This usually takes a few seconds. Hold tight.",
