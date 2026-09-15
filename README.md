@@ -39,7 +39,7 @@ There is no database and no file persistence. Uploaded files exist only in memor
 
 - 3–5 sentence professional summary of strengths and positioning.
 - 5–8 suggested job titles matched to the resume content.
-- 5–8 concrete improvements, each with `title`, `description`, and `priority` (`high` | `medium` | `low`), sorted high → medium → low and capped at 12.
+- 5–8 concrete improvements, each with `text` and `priority` (`high` | `medium` | `low`), sorted high → medium → low and capped at 12.
 
 **File handling**
 
@@ -72,18 +72,18 @@ There is no database and no file persistence. Uploaded files exist only in memor
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Next.js 16.3.4 (App Router, `runtime: nodejs`, `maxDuration: 60`) |
-| UI | React 19.2.8, TypeScript 5, Tailwind CSS 4 |
-| Components | shadcn/ui + Base UI, `lucide-react` icons |
-| Fonts | `next/font` — Geist, Noto Sans, Playfair Display |
-| Validation | Zod 4.5.4 (client + server schemas) |
-| AI | Google Gemini API (`gemini-3.6-flash` default), `temperature: 0.2`, JSON response mode |
-| Text extraction | `unpdf` 1.8.1 (PDF), `mammoth` 1.12.2 (DOCX), native `File.text()` (TXT) |
-| Rate limiting | Upstash Redis + `@upstash/ratelimit` (sliding window) |
-| Theming / feedback | `next-themes`, `sonner` toasts |
-| Testing | Vitest 5 + Testing Library + jsdom + axe-core |
+| Layer              | Technology                                                                             |
+| ------------------ | -------------------------------------------------------------------------------------- |
+| Framework          | Next.js 16.3.4 (App Router, `runtime: nodejs`, `maxDuration: 60`)                      |
+| UI                 | React 19.2.8, TypeScript 5, Tailwind CSS 4                                             |
+| Components         | shadcn/ui + Base UI, `lucide-react` icons                                              |
+| Fonts              | `next/font` — Geist, Noto Sans, Playfair Display                                       |
+| Validation         | Zod 4.5.4 (client + server schemas)                                                    |
+| AI                 | Google Gemini API (`gemini-3.6-flash` default), `temperature: 0.2`, JSON response mode |
+| Text extraction    | `unpdf` 1.8.1 (PDF), `mammoth` 1.12.2 (DOCX), native `File.text()` (TXT)               |
+| Rate limiting      | Upstash Redis + `@upstash/ratelimit` (sliding window)                                  |
+| Theming / feedback | `next-themes`, `sonner` toasts                                                         |
+| Testing            | Vitest 5 + Testing Library + jsdom + axe-core                                          |
 
 ## Architecture & Project Structure
 
@@ -182,7 +182,11 @@ Constraints: `application/pdf` / `application/vnd.openxmlformats-officedocument.
 ```json
 {
   "summary": "Senior frontend engineer with 6 years building React and TypeScript applications...",
-  "jobTitles": ["Senior Frontend Engineer", "Full-Stack Developer", "UI Engineer"],
+  "jobTitles": [
+    "Senior Frontend Engineer",
+    "Full-Stack Developer",
+    "UI Engineer"
+  ],
   "improvements": [
     {
       "title": "Quantify impact",
@@ -200,20 +204,20 @@ Constraints: `application/pdf` / `application/vnd.openxmlformats-officedocument.
 
 Schema (`ResumeAnalysisResponseSchema`):
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `summary` | `string` | 3–5 sentences |
-| `jobTitles` | `string[5–8]` | Deduped (case-insensitive) |
+| Field          | Type                                    | Notes                                                              |
+| -------------- | --------------------------------------- | ------------------------------------------------------------------ |
+| `summary`      | `string`                                | 3–5 sentences                                                      |
+| `jobTitles`    | `string[5–8]`                           | Deduped (case-insensitive)                                         |
 | `improvements` | `{ title, description, priority }[5–8]` | `priority`: `high` \| `medium` \| `low`; sorted high → low, max 12 |
 
 **Errors** — all errors return `{ "error": "<message>" }`:
 
-| Status | Meaning | Example |
-|--------|---------|---------|
-| `400` | Invalid file (missing, too large, wrong type, signature mismatch, extraction too short, empty text) | `{ "error": "File must be PDF, DOCX, or TXT under 5MB." }` |
-| `429` | Rate limit exceeded (10 req / 60 s per IP) | Headers: `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` |
-| `500` | Server misconfiguration (e.g. missing `GEMINI_API_KEY`) or unexpected failure | `{ "error": "Server is not configured. Please try again later." }` |
-| `502` | Gemini request failed after retries, timed out, or returned unparseable JSON | `{ "error": "AI analysis failed. Please try again." }` |
+| Status | Meaning                                                                                             | Example                                                                                   |
+| ------ | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `400`  | Invalid file (missing, too large, wrong type, signature mismatch, extraction too short, empty text) | `{ "error": "File must be PDF, DOCX, or TXT under 5MB." }`                                |
+| `429`  | Rate limit exceeded (10 req / 60 s per IP)                                                          | Headers: `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` |
+| `500`  | Server misconfiguration (e.g. missing `GEMINI_API_KEY`) or unexpected failure                       | `{ "error": "Server is not configured. Please try again later." }`                        |
+| `502`  | Gemini request failed after retries, timed out, or returned unparseable JSON                        | `{ "error": "AI analysis failed. Please try again." }`                                    |
 
 Client usage (`lib/api.ts`):
 
@@ -270,26 +274,25 @@ npm run start   # serve production build
 
 ## Environment Variables
 
-| Name | Required | Description |
-|------|----------|-------------|
-| `GEMINI_API_KEY` | Yes | Google Gemini API key. Without it the API route returns `500`. |
-| `UPSTASH_REDIS_REST_URL` | No | Upstash Redis REST URL for rate limiting. If unset, rate limiting is skipped (fail-open) and requests proceed. |
-| `UPSTASH_REDIS_REST_TOKEN` | No | Upstash Redis REST token. Required alongside the URL to enable rate limiting. |
-| `GEMINI_MODEL` | No | Override for the default model (`gemini-3.6-flash`). |
+| Name                       | Required | Description                                                                                                    |
+| -------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`           | Yes      | Google Gemini API key. Without it the API route returns `500`.                                                 |
+| `UPSTASH_REDIS_REST_URL`   | No       | Upstash Redis REST URL for rate limiting. If unset, rate limiting is skipped (fail-open) and requests proceed. |
+| `UPSTASH_REDIS_REST_TOKEN` | No       | Upstash Redis REST token. Required alongside the URL to enable rate limiting.                                  |
 
 > Fail-open note: when Upstash credentials are absent or Redis is unreachable, `checkRateLimit()` logs a warning and allows the request rather than blocking legitimate traffic. Configure both Upstash vars in production to enforce the 10 req / 60 s per-IP limit.
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start the Next.js dev server |
-| `npm run build` | Production build |
-| `npm run start` | Serve the production build |
-| `npm run lint` | Run ESLint |
-| `npm test` | Run Vitest (watch mode in TTY, single run in CI) |
-| `npx vitest run` | Run the full suite once |
-| `npx vitest run --coverage` | Run with coverage report |
+| Command                     | Description                                      |
+| --------------------------- | ------------------------------------------------ |
+| `npm run dev`               | Start the Next.js dev server                     |
+| `npm run build`             | Production build                                 |
+| `npm run start`             | Serve the production build                       |
+| `npm run lint`              | Run ESLint                                       |
+| `npm test`                  | Run Vitest (watch mode in TTY, single run in CI) |
+| `npx vitest run`            | Run the full suite once                          |
+| `npx vitest run --coverage` | Run with coverage report                         |
 
 ## Validation & Security
 
@@ -352,4 +355,4 @@ No license specified yet. Add a `LICENSE` file (e.g. MIT) before public distribu
 
 ---
 
-*Privacy note: files are only sent for analysis — nothing is stored. Uploaded resumes live in memory for a single request and are discarded after the response.*
+_Privacy note: files are only sent for analysis — nothing is stored. Uploaded resumes live in memory for a single request and are discarded after the response._
