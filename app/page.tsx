@@ -265,7 +265,7 @@ export default function Home() {
               <Sparkles className="size-4" />
             </span>
             <span className="font-heading text-[17px] font-semibold tracking-tight sm:text-[18px]">
-              ResumeLens
+              ResumeSummary
             </span>
           </a>
           <p className="hidden items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground sm:inline-flex">
@@ -436,7 +436,7 @@ export default function Home() {
       <footer className="border-t border-border/60">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-1.5 px-4 py-5 text-xs leading-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p className="text-pretty">
-            ResumeLens · AI feedback for job seekers. Files are only sent for
+            ResumeSummary · AI feedback for job seekers. Files are only sent for
             analysis — nothing is stored.
           </p>
           <p className="shrink-0 tabular-nums">PDF · DOCX · TXT · 5MB max</p>

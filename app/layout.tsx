@@ -29,7 +29,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ResumeLens — AI Resume Review",
+  title: "ResumeSummary — AI Resume Review",
   description:
     "Upload your resume for an instant summary, matched job titles, and prioritized improvements.",
 };
