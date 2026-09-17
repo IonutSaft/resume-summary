@@ -17,9 +17,7 @@ Built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, Zod, 
 - [Scripts](#scripts)
 - [Validation \& Security](#validation--security)
 - [Testing](#testing)
-- [Deployment](#deployment)
 - [Accessibility](#accessibility)
-- [License](#license)
 
 ## Overview
 
@@ -280,8 +278,6 @@ npm run start   # serve production build
 | `UPSTASH_REDIS_REST_URL`   | No       | Upstash Redis REST URL for rate limiting. If unset, rate limiting is skipped (fail-open) and requests proceed. |
 | `UPSTASH_REDIS_REST_TOKEN` | No       | Upstash Redis REST token. Required alongside the URL to enable rate limiting.                                  |
 
-> Fail-open note: when Upstash credentials are absent or Redis is unreachable, `checkRateLimit()` logs a warning and allows the request rather than blocking legitimate traffic. Configure both Upstash vars in production to enforce the 10 req / 60 s per-IP limit.
-
 ## Scripts
 
 | Command                     | Description                                      |
@@ -324,22 +320,6 @@ npx vitest run lib/gemini.test.ts  # single file
 - `lib/*.test.ts` — schemas, Gemini prompt/parse/retry logic, text extraction, file signatures, rate limiting.
 - `components/accessibility.test.tsx` — axe-core checks for keyboard, ARIA, and live-region compliance.
 
-## Deployment
-
-The app deploys anywhere Next.js 16 runs (Vercel recommended).
-
-```bash
-npm run build
-npm run start
-```
-
-**Production checklist**
-
-1. Set `GEMINI_API_KEY` (required) and both `UPSTASH_REDIS_*` vars (recommended) in your host's environment settings.
-2. Keep the Node.js runtime — the route uses `unpdf`/`mammoth` and requires `runtime: nodejs`.
-3. Body-size note: Vercel's default serverless body limit is **4.5 MB**, slightly below the app's 5 MB cap. Uploads between 4.5–5 MB may be rejected at the platform layer on Vercel before reaching Zod validation. To fully support 5 MB files, raise the body-size limit in your hosting config or self-host.
-4. `maxDuration: 60` allows time for extraction + Gemini retries; ensure your plan supports 60 s function durations.
-
 ## Accessibility
 
 - Keyboard-operable dropzone and tabs (focus visible, `Enter`/`Space`/`Tab` support).
@@ -348,10 +328,6 @@ npm run start
 - Focus is moved to results on success; page phases use semantic headings.
 - Color-contrast-safe priority badges that don't rely on color alone (text labels included).
 - Verified with axe-core in `components/accessibility.test.tsx`.
-
-## License
-
-No license specified yet. Add a `LICENSE` file (e.g. MIT) before public distribution.
 
 ---
 
