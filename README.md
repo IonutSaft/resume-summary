@@ -132,26 +132,6 @@ There is no database and no file persistence. Uploaded files exist only in memor
 
 ## How It Works
 
-```
-Browser                          Server (/api/analyze-resume)              Gemini
-  │                                        │                                 │
-  │── FormData { file } ──────────────────▶│                                 │
-  │                                        │── 1. Rate limit (10/60s per IP) │
-  │                                        │── 2. Zod validation (5 MB, MIME │
-  │                                        │      + extension + magic bytes) │
-  │                                        │── 3. Text extraction (unpdf /   │
-  │                                        │      mammoth / File.text,       │
-  │                                        │      normalize, ≥10 chars)      │
-  │                                        │── 4. Prompt build (≤15000 chars,│
-  │                                        │      delimited resume block) ──▶│
-  │                                        │◀── JSON (temp 0.2, 30s timeout, │
-  │                                        │   3 attempts) ──────────────────│
-  │                                        │── 5. Parse → normalize (trim,   │
-  │                                        │      dedup titles, sort +       │
-  │                                        │      cap improvements) → Zod    │
-  │◀── 200 ResumeAnalysisResponse ──────────│                                 │
-```
-
 1. **Upload** — `ResumeUpload` validates extension/size client-side, then POSTs `FormData` via `analyzeResume()`. Cancellation aborts the fetch.
 2. **Rate limit** — Sliding window (10 req / 60 s per IP). Exceeding returns `429` with `Retry-After` and `X-RateLimit-*` headers; the UI shows a countdown toast.
 3. **Validation** — `FileValidationSchema` checks size (≤ 5 MB), MIME allowlist, extension→MIME consistency, and magic-byte signature.
