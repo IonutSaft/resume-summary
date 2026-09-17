@@ -1,5 +1,7 @@
 # ResumeSummary — AI Resume Review
 
+> **Live Demo →** [Open here](https://resume-summary-three.vercel.app)
+
 Upload a resume. Get an honest, actionable review in seconds — summary, matching job titles, and prioritized improvements.
 
 Built with Next.js 16 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, Zod, and the Google Gemini API. No accounts. No storage. Files are sent only for analysis.
@@ -257,6 +259,8 @@ npm run start   # serve production build
 | `GEMINI_API_KEY`           | Yes      | Google Gemini API key. Without it the API route returns `500`.                                                 |
 | `UPSTASH_REDIS_REST_URL`   | No       | Upstash Redis REST URL for rate limiting. If unset, rate limiting is skipped (fail-open) and requests proceed. |
 | `UPSTASH_REDIS_REST_TOKEN` | No       | Upstash Redis REST token. Required alongside the URL to enable rate limiting.                                  |
+
+> Fail-open note: when Upstash credentials are absent or Redis is unreachable, `checkRateLimit()` logs a warning and allows the request rather than blocking legitimate traffic. Both Upstash vars should be configured to enforce the 10 req / 60 s per-IP limit.
 
 ## Scripts
 
