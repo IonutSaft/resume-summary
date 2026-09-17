@@ -60,7 +60,9 @@ function friendlyErrorMessage(error: Error): { title: string; hint: string } {
       hint: "Only PDF, DOCX, or TXT files are supported.",
     };
   }
-  if (/network|fetch|failed to fetch|offline|network request failed/i.test(raw)) {
+  if (
+    /network|fetch|failed to fetch|offline|network request failed/i.test(raw)
+  ) {
     return {
       title: "Network error",
       hint: "Check your connection and try again.",
@@ -127,7 +129,9 @@ const STEPS = [
 
 export default function Home() {
   const [phase, setPhase] = React.useState<Phase>("idle");
-  const [result, setResult] = React.useState<ResumeAnalysisResponse | null>(null);
+  const [result, setResult] = React.useState<ResumeAnalysisResponse | null>(
+    null,
+  );
   const [uploadKey, setUploadKey] = React.useState(0);
 
   const uploadSectionRef = React.useRef<HTMLDivElement>(null);
@@ -221,7 +225,10 @@ export default function Home() {
   React.useEffect(() => {
     if (phase !== "success") return;
     const t = window.setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      resultsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     }, 50);
     return () => window.clearTimeout(t);
   }, [phase]);
@@ -270,7 +277,9 @@ export default function Home() {
           </a>
           <p className="hidden items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground sm:inline-flex">
             <ShieldCheck aria-hidden="true" className="size-3.5 shrink-0" />
-            <span className="hidden sm:inline">Private by design · PDF · DOCX · TXT</span>
+            <span className="hidden sm:inline">
+              Private by design · PDF · DOCX · TXT
+            </span>
           </p>
         </div>
       </header>
@@ -285,7 +294,10 @@ export default function Home() {
           className="text-center sm:text-left"
         >
           <p className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-card px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground shadow-sm dark:border-white/10 dark:bg-card/80">
-            <Sparkles aria-hidden="true" className="size-3.5 shrink-0 text-foreground" />
+            <Sparkles
+              aria-hidden="true"
+              className="size-3.5 shrink-0 text-foreground"
+            />
             AI resume review
           </p>
           <h1
@@ -296,7 +308,7 @@ export default function Home() {
           </h1>
           <p className="mx-auto mt-3 max-w-[60ch] text-[14px] leading-7 text-pretty text-muted-foreground sm:mx-0 sm:text-[15px] sm:leading-7">
             Upload your resume for an instant summary, matched job titles, and
-            prioritized improvements — ready to copy into applications.
+            prioritized improvements.
           </p>
         </section>
 
@@ -309,7 +321,10 @@ export default function Home() {
               visually hidden while loading / results are shown) */}
           <div
             ref={uploadSectionRef}
-            className={cn("scroll-mt-24", (isUploading || showResults) && "hidden")}
+            className={cn(
+              "scroll-mt-24",
+              (isUploading || showResults) && "hidden",
+            )}
             aria-hidden={isUploading || showResults}
           >
             <ResumeUpload
@@ -436,8 +451,12 @@ export default function Home() {
       <footer className="border-t border-border/60">
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-1.5 px-4 py-5 text-xs leading-6 text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p className="text-pretty">
-            ResumeSummary · AI feedback for job seekers. Files are only sent for
-            analysis — nothing is stored.
+            Your resume is processed in memory and discarded when you refresh —
+            we don&apos;t store it on our servers. It is sent to Google&apos;s
+            Gemini API (free tier) to generate your summary. Under Google&apos;s
+            terms, free-tier API usage may be used to improve their products,
+            and in some cases reviewed by human staff. If you&apos;d prefer your
+            resume isn&apos;t used this way, please don&apos;t upload it here.
           </p>
           <p className="shrink-0 tabular-nums">PDF · DOCX · TXT · 5MB max</p>
         </div>
