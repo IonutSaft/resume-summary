@@ -1,6 +1,6 @@
 # ResumeSummary — AI Resume Review
 
-> **Live Demo →** [Open here](https://resume-summary-three.vercel.app)
+> **Production Site →** [Open here](https://resume-summary-three.vercel.app)
 
 Upload a resume. Get an honest, actionable review in seconds — summary, matching job titles, and prioritized improvements.
 
